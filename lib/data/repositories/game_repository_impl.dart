@@ -90,7 +90,7 @@ class GameRepositoryImpl implements GameRepository {
       final suit = suits[i % suits.length];
       final ordinaryCards = <Card>[];
 
-      // Ordre décroissant traditionnel: Roi (14) jusqu'à As (1) en dernier
+      // Ordre décroissant traditionnel: Roi (14) jusqu'à As (1)
       final allRanks = [
         CardRank.king, // 14
         CardRank.queen, // 13
@@ -108,12 +108,14 @@ class GameRepositoryImpl implements GameRepository {
         CardRank.ace, // 1 (en dernier selon les règles)
       ];
 
-      // Prendre seulement le nombre de cartes correspondant aux vies de départ
-      // Si startingLives = 5, on prend les 5 premières (Roi, Dame, Cavalier, Valet, 10)
-      // Si startingLives = 14, on prend toutes les cartes
-      final ranksToUse = allRanks.take(startingLives).toList();
+      // Prendre les cartes de startingLives jusqu'à 1
+      // Si startingLives = 5, on prend : 5, 4, 3, 2, As (valeurs 5 à 1)
+      // Si startingLives = 14, on prend toutes les cartes (Roi à As, valeurs 14 à 1)
+      // On commence à l'index (14 - startingLives) pour avoir la bonne carte de départ
+      final startIndex = 14 - startingLives;
+      final ranksToUse = allRanks.skip(startIndex).take(startingLives).toList();
 
-      // Valeurs selon l'ordre traditionnel du Tarot Africain
+      // Valeurs décroissantes de startingLives à 1
       int value = startingLives;
       for (final rank in ranksToUse) {
         ordinaryCards.add(Card(suit: suit, rank: rank, value: value));
