@@ -303,7 +303,7 @@ class _PlayerHandWidgetState extends State<PlayerHandWidget>
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 250),
             curve: Curves.easeOutBack,
-            margin: EdgeInsets.only(top: isSelected ? 0 : 15),
+            margin: EdgeInsets.only(top: isSelected ? 0.0 : 15.0),
             child: AnimatedScale(
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeOutBack,

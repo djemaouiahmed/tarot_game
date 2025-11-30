@@ -156,44 +156,6 @@ class _BidControlsState extends State<BidControls> {
 
           const SizedBox(height: 16),
 
-          // Warning message for last player
-          if (_getForbiddenBidMessage() != null) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.orange.withOpacity(0.6),
-                  width: 2,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.warning_amber_rounded,
-                    color: Colors.orange,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      _getForbiddenBidMessage()!,
-                      style: const TextStyle(
-                        color: Colors.orange,
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
-
           // Poker chips horizontal layout
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -257,26 +219,5 @@ class _BidControlsState extends State<BidControls> {
     }
 
     return true;
-  }
-
-  String? _getForbiddenBidMessage() {
-    final isLastPlayer =
-        widget.gameState.bids.length == widget.gameState.players.length - 1;
-
-    if (!isLastPlayer) return null;
-
-    // Calculate current total of bids
-    int currentTotal = 0;
-    for (final b in widget.gameState.bids) {
-      currentTotal += b;
-    }
-
-    final forbiddenBid = widget.gameState.cardsPerRound - currentTotal;
-
-    if (forbiddenBid >= 0 && forbiddenBid <= widget.gameState.cardsPerRound) {
-      return 'Vous ne pouvez pas parier $forbiddenBid pli${forbiddenBid > 1 ? 's' : ''} (total = ${widget.gameState.cardsPerRound})';
-    }
-
-    return null;
   }
 }

@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/player.dart';
 import '../../domain/entities/game_state.dart';
 import '../../domain/entities/card.dart' as game_card;
+import '../../core/utils/responsive_utils.dart';
 import 'card_widget.dart';
 import 'bid_token_widget.dart';
+
+enum PlayerOrientation { left, top, right }
 
 class PlayerBoard extends StatefulWidget {
   final GameState gameState;
@@ -62,43 +65,157 @@ class _PlayerBoardState extends State<PlayerBoard>
         .where((p) => p.type == PlayerType.bot)
         .toList();
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Joueurs du haut (bots en positions fixes)
-          _buildOpponentRow(botPlayers),
+    // For 4 players: position bots on left, top, right
+    // For 3 players: position bots on left and right
+    // For 2 players: position bot on top
 
-          const SizedBox(height: 12),
+    return Stack(
+      children: [
+        // Center table (playing area)
+        Center(child: _buildCenterTable()),
 
-          // Zone centrale de jeu
-          Flexible(child: _buildCenterTable()),
-
-          const SizedBox(height: 12),
-        ],
-      ),
+        // Position bots based on player count
+        if (botPlayers.isNotEmpty)
+          ..._buildPositionedPlayers(context, botPlayers),
+      ],
     );
   }
 
-  Widget _buildOpponentRow(List<Player> botPlayers) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: botPlayers.map((player) {
-        return _buildOpponentPlayer(player);
-      }).toList(),
-    );
+  List<Widget> _buildPositionedPlayers(
+    BuildContext context,
+    List<Player> botPlayers,
+  ) {
+    final List<Widget> positionedPlayers = [];
+    final screenWidth = ResponsiveUtils.getAvailableWidth(context);
+    final screenHeight = ResponsiveUtils.getAvailableHeight(context);
+    final spacing = ResponsiveUtils.getHorizontalSpacing(context);
+
+    // Responsive sizing
+    final isSmall = ResponsiveUtils.isSmallScreen(context);
+    final playerCardWidth = isSmall
+        ? 140.0
+        : ResponsiveUtils.valueByScreen(
+            context: context,
+            mobile: 160.0,
+            tablet: 180.0,
+            desktop: 200.0,
+          );
+
+    if (botPlayers.length >= 3) {
+      // 4-player mode: Left, Top, Right
+      // Left player (Bot 1)
+      positionedPlayers.add(
+        Positioned(
+          left: spacing * 2,
+          top: screenHeight * 0.35,
+          child: _buildOpponentPlayer(
+            botPlayers[0],
+            orientation: PlayerOrientation.left,
+            width: playerCardWidth,
+          ),
+        ),
+      );
+
+      // Top player (Bot 2)
+      positionedPlayers.add(
+        Positioned(
+          top: spacing * 3,
+          left: (screenWidth - playerCardWidth) / 2,
+          child: _buildOpponentPlayer(
+            botPlayers[1],
+            orientation: PlayerOrientation.top,
+            width: playerCardWidth,
+          ),
+        ),
+      );
+
+      // Right player (Bot 3)
+      positionedPlayers.add(
+        Positioned(
+          right: spacing * 2,
+          top: screenHeight * 0.35,
+          child: _buildOpponentPlayer(
+            botPlayers[2],
+            orientation: PlayerOrientation.right,
+            width: playerCardWidth,
+          ),
+        ),
+      );
+    } else if (botPlayers.length == 2) {
+      // 3-player mode: Left and Right
+      positionedPlayers.add(
+        Positioned(
+          left: spacing * 2,
+          top: screenHeight * 0.35,
+          child: _buildOpponentPlayer(
+            botPlayers[0],
+            orientation: PlayerOrientation.left,
+            width: playerCardWidth,
+          ),
+        ),
+      );
+
+      positionedPlayers.add(
+        Positioned(
+          right: spacing * 2,
+          top: screenHeight * 0.35,
+          child: _buildOpponentPlayer(
+            botPlayers[1],
+            orientation: PlayerOrientation.right,
+            width: playerCardWidth,
+          ),
+        ),
+      );
+    } else if (botPlayers.length == 1) {
+      // 2-player mode: Top
+      positionedPlayers.add(
+        Positioned(
+          top: spacing * 3,
+          left: (screenWidth - playerCardWidth) / 2,
+          child: _buildOpponentPlayer(
+            botPlayers[0],
+            orientation: PlayerOrientation.top,
+            width: playerCardWidth,
+          ),
+        ),
+      );
+    }
+
+    return positionedPlayers;
   }
 
-  Widget _buildOpponentPlayer(Player player) {
+  Widget _buildOpponentPlayer(
+    Player player, {
+    required PlayerOrientation orientation,
+    required double width,
+  }) {
     final playerIndex = widget.gameState.players.indexOf(player);
     final isCurrentTurn = widget.gameState.currentPlayer.id == player.id;
     final bidIndex = widget.gameState.players.indexOf(player);
     final hasBid = bidIndex < widget.gameState.bids.length;
     final bid = hasBid ? widget.gameState.bids[bidIndex] : null;
 
+    final isSmall = ResponsiveUtils.isSmallScreen(context);
+    final cardWidth = isSmall
+        ? 50.0
+        : ResponsiveUtils.valueByScreen(
+            context: context,
+            mobile: 55.0,
+            tablet: 65.0,
+            desktop: 75.0,
+          );
+    final cardHeight = isSmall
+        ? 75.0
+        : ResponsiveUtils.valueByScreen(
+            context: context,
+            mobile: 82.5,
+            tablet: 97.5,
+            desktop: 112.5,
+          );
+
     return Container(
-      padding: const EdgeInsets.all(12),
+      width: width,
+      padding: EdgeInsets.all(ResponsiveUtils.getHorizontalSpacing(context)),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -113,7 +230,9 @@ class _PlayerBoardState extends State<PlayerBoard>
                   Colors.deepPurple.shade900.withOpacity(0.6),
                 ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(
+          ResponsiveUtils.responsiveSize(context, 16),
+        ),
         border: Border.all(
           color: isCurrentTurn
               ? Colors.cyanAccent
@@ -137,17 +256,23 @@ class _PlayerBoardState extends State<PlayerBoard>
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Player name with modern badge
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: EdgeInsets.symmetric(
+              horizontal: ResponsiveUtils.getHorizontalSpacing(context) * 1.5,
+              vertical: ResponsiveUtils.getVerticalSpacing(context) * 0.75,
+            ),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isCurrentTurn
                     ? [Colors.cyanAccent.shade400, Colors.blue.shade600]
                     : [Colors.amber.shade600, Colors.orange.shade800],
               ),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(
+                ResponsiveUtils.responsiveSize(context, 20),
+              ),
               boxShadow: [
                 BoxShadow(
                   color: isCurrentTurn
@@ -161,14 +286,20 @@ class _PlayerBoardState extends State<PlayerBoard>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.smart_toy_rounded, color: Colors.white, size: 16),
-                const SizedBox(width: 6),
+                Icon(
+                  Icons.smart_toy_rounded,
+                  color: Colors.white,
+                  size: ResponsiveUtils.getIconSize(context, 16),
+                ),
+                SizedBox(
+                  width: ResponsiveUtils.getHorizontalSpacing(context) * 0.75,
+                ),
                 Text(
                   player.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                    fontSize: ResponsiveUtils.getFontSize(context, 13),
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -176,30 +307,44 @@ class _PlayerBoardState extends State<PlayerBoard>
             ),
           ),
 
-          const SizedBox(height: 12),
+          SizedBox(height: ResponsiveUtils.getVerticalSpacing(context) * 1.5),
 
           // Cards with glow effect
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(
+              ResponsiveUtils.getHorizontalSpacing(context),
+            ),
             decoration: BoxDecoration(
               color: Colors.black.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(
+                ResponsiveUtils.responsiveSize(context, 12),
+              ),
               border: Border.all(
                 color: Colors.white.withOpacity(0.1),
                 width: 1,
               ),
             ),
-            child: _buildHiddenCards(player, playerIndex),
+            child: _buildHiddenCards(
+              player,
+              playerIndex,
+              cardWidth,
+              cardHeight,
+            ),
           ),
 
-          const SizedBox(height: 10),
+          SizedBox(height: ResponsiveUtils.getVerticalSpacing(context) * 1.25),
 
           // Stats row with modern design
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            padding: EdgeInsets.symmetric(
+              horizontal: ResponsiveUtils.getHorizontalSpacing(context),
+              vertical: ResponsiveUtils.getVerticalSpacing(context) * 0.75,
+            ),
             decoration: BoxDecoration(
               color: Colors.black.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(
+                ResponsiveUtils.responsiveSize(context, 10),
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -210,11 +355,16 @@ class _PlayerBoardState extends State<PlayerBoard>
                   label: '${player.score}',
                   color: Colors.amber,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: ResponsiveUtils.getHorizontalSpacing(context)),
                 // Bid token
                 if (bid != null && bid > 0) ...[
-                  PlayerBidToken(bidValue: bid, tokenSize: 16),
-                  const SizedBox(width: 8),
+                  PlayerBidToken(
+                    bidValue: bid,
+                    tokenSize: ResponsiveUtils.getIconSize(context, 16),
+                  ),
+                  SizedBox(
+                    width: ResponsiveUtils.getHorizontalSpacing(context),
+                  ),
                 ],
                 // Tricks won
                 if (widget.gameState.phase == GamePhase.playing)
@@ -237,22 +387,31 @@ class _PlayerBoardState extends State<PlayerBoard>
     required Color color,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      padding: EdgeInsets.symmetric(
+        horizontal: ResponsiveUtils.getHorizontalSpacing(context) * 0.75,
+        vertical: ResponsiveUtils.getVerticalSpacing(context) * 0.375,
+      ),
       decoration: BoxDecoration(
         color: color.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(
+          ResponsiveUtils.responsiveSize(context, 8),
+        ),
         border: Border.all(color: color.withOpacity(0.5), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 14),
-          const SizedBox(width: 4),
+          Icon(
+            icon,
+            color: color,
+            size: ResponsiveUtils.getIconSize(context, 14),
+          ),
+          SizedBox(width: ResponsiveUtils.getHorizontalSpacing(context) * 0.5),
           Text(
             label,
             style: TextStyle(
               color: color,
-              fontSize: 12,
+              fontSize: ResponsiveUtils.getFontSize(context, 12),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -261,16 +420,25 @@ class _PlayerBoardState extends State<PlayerBoard>
     );
   }
 
-  Widget _buildHiddenCards(Player player, int playerIndex) {
+  Widget _buildHiddenCards(
+    Player player,
+    int playerIndex,
+    double cardWidth,
+    double cardHeight,
+  ) {
     final cardCount = player.hand.length;
+    final isSmall = ResponsiveUtils.isSmallScreen(context);
+    final cardOffset = isSmall ? 12.0 : 15.0;
 
     return Stack(
       children: List.generate(cardCount.clamp(0, 5), (cardIndex) {
         return Transform.translate(
-          offset: Offset(cardIndex * 15.0, cardIndex * 2.0),
+          offset: Offset(cardIndex * cardOffset, cardIndex * 2.0),
           child: Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(
+                ResponsiveUtils.responsiveSize(context, 8),
+              ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.5),
@@ -281,10 +449,10 @@ class _PlayerBoardState extends State<PlayerBoard>
             ),
             child: SlideTransition(
               position: _cardAnimations[playerIndex % _cardAnimations.length],
-              child: const CardWidget(
+              child: CardWidget(
                 card: null,
-                width: 60,
-                height: 90,
+                width: cardWidth,
+                height: cardHeight,
                 faceUp: false,
               ),
             ),
@@ -295,9 +463,17 @@ class _PlayerBoardState extends State<PlayerBoard>
   }
 
   Widget _buildCenterTable() {
+    final isSmall = ResponsiveUtils.isSmallScreen(context);
+    final tableSize = ResponsiveUtils.valueByScreen(
+      context: context,
+      mobile: isSmall ? 200.0 : 280.0,
+      tablet: 350.0,
+      desktop: 400.0,
+    );
+
     return Container(
-      width: 320,
-      height: 320,
+      width: tableSize,
+      height: tableSize,
       decoration: BoxDecoration(
         gradient: RadialGradient(
           colors: [
@@ -332,8 +508,8 @@ class _PlayerBoardState extends State<PlayerBoard>
             // Inner decorative circles
             Center(
               child: Container(
-                width: 240,
-                height: 240,
+                width: tableSize * 0.75,
+                height: tableSize * 0.75,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
@@ -345,8 +521,8 @@ class _PlayerBoardState extends State<PlayerBoard>
             ),
             Center(
               child: Container(
-                width: 160,
-                height: 160,
+                width: tableSize * 0.5,
+                height: tableSize * 0.5,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
@@ -361,7 +537,9 @@ class _PlayerBoardState extends State<PlayerBoard>
                 ? _buildCurrentTrick()
                 : Center(
                     child: Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: EdgeInsets.all(
+                        ResponsiveUtils.getHorizontalSpacing(context) * 2.5,
+                      ),
                       decoration: BoxDecoration(
                         gradient: RadialGradient(
                           colors: [
@@ -374,7 +552,7 @@ class _PlayerBoardState extends State<PlayerBoard>
                       ),
                       child: Icon(
                         Icons.casino_rounded,
-                        size: 70,
+                        size: ResponsiveUtils.getIconSize(context, 70),
                         color: Colors.amber.withOpacity(0.6),
                       ),
                     ),
@@ -387,6 +565,9 @@ class _PlayerBoardState extends State<PlayerBoard>
 
   Widget _buildCurrentTrick() {
     final trickSize = widget.gameState.currentTrick.length;
+    final isSmall = ResponsiveUtils.isSmallScreen(context);
+    final cardSpacing = isSmall ? 20.0 : 25.0;
+    final cardVerticalOffset = isSmall ? 8.0 : 10.0;
 
     return Center(
       child: Stack(
@@ -398,8 +579,8 @@ class _PlayerBoardState extends State<PlayerBoard>
 
             // Disposer les cartes en éventail centré
             final angle = (index - (trickSize - 1) / 2) * 0.15;
-            final offsetX = (index - (trickSize - 1) / 2) * 25.0;
-            final offsetY = (index - (trickSize - 1) / 2) * 10.0;
+            final offsetX = (index - (trickSize - 1) / 2) * cardSpacing;
+            final offsetY = (index - (trickSize - 1) / 2) * cardVerticalOffset;
 
             return Transform.translate(
               offset: Offset(offsetX, offsetY),
@@ -471,6 +652,20 @@ class _AnimatedCardState extends State<AnimatedCard>
 
   @override
   Widget build(BuildContext context) {
+    final isSmall = ResponsiveUtils.isSmallScreen(context);
+    final cardWidth = ResponsiveUtils.valueByScreen(
+      context: context,
+      mobile: isSmall ? 65.0 : 75.0,
+      tablet: 90.0,
+      desktop: 100.0,
+    );
+    final cardHeight = ResponsiveUtils.valueByScreen(
+      context: context,
+      mobile: isSmall ? 97.5 : 112.5,
+      tablet: 135.0,
+      desktop: 150.0,
+    );
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
@@ -478,7 +673,11 @@ class _AnimatedCardState extends State<AnimatedCard>
           scale: _scaleAnimation.value,
           child: Transform.rotate(
             angle: _rotationAnimation.value,
-            child: CardWidget(card: widget.card, width: 80, height: 120),
+            child: CardWidget(
+              card: widget.card,
+              width: cardWidth,
+              height: cardHeight,
+            ),
           ),
         );
       },

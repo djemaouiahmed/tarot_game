@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/theme_provider.dart';
+import '../../core/audio/audio_service.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../bloc/game_bloc.dart';
 import 'game_setup_config_page.dart';
@@ -323,55 +324,114 @@ class _HomePageState extends State<HomePage>
             Positioned(
               bottom: ResponsiveUtils.getVerticalSpacing(context) * 2.5,
               right: ResponsiveUtils.getHorizontalSpacing(context) * 2.5,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: themeProvider.isDarkMode
-                          ? Colors.amber.withOpacity(0.5)
-                          : Colors.deepPurple.withOpacity(0.5),
-                      blurRadius: 15,
-                      spreadRadius: 2,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Music toggle button
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.amber.withOpacity(0.5),
+                          blurRadius: 15,
+                          spreadRadius: 2,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      themeProvider.toggleTheme();
-                    },
-                    borderRadius: BorderRadius.circular(30),
-                    child: Container(
-                      padding: EdgeInsets.all(
-                        ResponsiveUtils.getVerticalSpacing(context) * 1.5,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: themeProvider.isDarkMode
-                              ? [Colors.amber.shade600, Colors.orange.shade700]
-                              : [
-                                  Colors.deepPurple.shade700,
-                                  Colors.deepPurple.shade900,
-                                ],
-                        ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          setState(() {
+                            AudioService().toggleMusic();
+                          });
+                        },
                         borderRadius: BorderRadius.circular(30),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
-                          width: 2,
+                        child: Container(
+                          padding: EdgeInsets.all(
+                            ResponsiveUtils.getVerticalSpacing(context) * 1.5,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.amber.shade600,
+                                Colors.orange.shade700,
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.3),
+                              width: 2,
+                            ),
+                          ),
+                          child: Icon(
+                            AudioService().isMusicEnabled
+                                ? Icons.music_note
+                                : Icons.music_off,
+                            color: Colors.white,
+                            size: ResponsiveUtils.getIconSize(context, 32),
+                          ),
                         ),
-                      ),
-                      child: Icon(
-                        themeProvider.isDarkMode
-                            ? Icons.light_mode
-                            : Icons.dark_mode,
-                        color: Colors.white,
-                        size: ResponsiveUtils.getIconSize(context, 32),
                       ),
                     ),
                   ),
-                ),
+                  // Dark mode toggle button
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: themeProvider.isDarkMode
+                              ? Colors.amber.withOpacity(0.5)
+                              : Colors.deepPurple.withOpacity(0.5),
+                          blurRadius: 15,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          themeProvider.toggleTheme();
+                        },
+                        borderRadius: BorderRadius.circular(30),
+                        child: Container(
+                          padding: EdgeInsets.all(
+                            ResponsiveUtils.getVerticalSpacing(context) * 1.5,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: themeProvider.isDarkMode
+                                  ? [
+                                      Colors.amber.shade600,
+                                      Colors.orange.shade700,
+                                    ]
+                                  : [
+                                      Colors.deepPurple.shade700,
+                                      Colors.deepPurple.shade900,
+                                    ],
+                            ),
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.3),
+                              width: 2,
+                            ),
+                          ),
+                          child: Icon(
+                            themeProvider.isDarkMode
+                                ? Icons.light_mode
+                                : Icons.dark_mode,
+                            color: Colors.white,
+                            size: ResponsiveUtils.getIconSize(context, 32),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
