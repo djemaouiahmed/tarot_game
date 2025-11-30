@@ -20,6 +20,9 @@ class AudioService {
     // Set background music to loop
     await _backgroundPlayer.setReleaseMode(ReleaseMode.loop);
     await _backgroundPlayer.setVolume(_volume);
+
+    // Start playing background music immediately
+    await playBackgroundMusic();
   }
 
   Future<void> playBackgroundMusic() async {

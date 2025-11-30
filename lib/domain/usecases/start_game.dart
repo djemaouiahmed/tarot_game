@@ -5,10 +5,15 @@ class StartGame {
 
   StartGame(this.repository);
 
-  Future call(int numberOfPlayers, {int initialCards = 5}) async {
+  Future call(
+    int numberOfPlayers, {
+    int initialCards = 5,
+    int startingLives = 14,
+  }) async {
     return await repository.initializeGame(
       numberOfPlayers,
       initialCards: initialCards,
+      startingLives: startingLives,
     );
   }
 }

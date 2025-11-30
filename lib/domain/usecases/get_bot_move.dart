@@ -374,10 +374,12 @@ class GetBotMove {
       } else {
         // Jouer après d'autres: essayer de gagner avec la plus petite carte possible
         final canWinCards = validCards.where((c) {
-          if (c.isExcuse)
+          if (c.isExcuse) {
             return true; // L'Excuse peut toujours gagner avec valeur 22
-          if (!c.isTrump)
+          }
+          if (!c.isTrump) {
             return false; // Les cartes ordinaires ne battent jamais les atouts
+          }
           return c.value > (winnerValue ?? 0);
         }).toList();
 
@@ -406,8 +408,9 @@ class GetBotMove {
         // Jouer une carte qui ne gagne pas, la plus petite possible
         final losingCards = validCards.where((c) {
           if (c.isExcuse) return false; // Éviter l'Excuse qui peut gagner
-          if (!c.isTrump)
+          if (!c.isTrump) {
             return true; // Les cartes ordinaires perdent toujours face aux atouts
+          }
           return c.value < (winnerValue ?? 0);
         }).toList();
 

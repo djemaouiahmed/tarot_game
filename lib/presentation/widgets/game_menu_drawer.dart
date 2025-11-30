@@ -244,7 +244,7 @@ class _GameMenuDrawerState extends State<GameMenuDrawer> {
               });
               AudioService().toggleMusic();
             },
-            activeColor: Colors.amber,
+            activeThumbColor: Colors.amber,
           ),
         ],
       ),
@@ -285,7 +285,7 @@ class _GameMenuDrawerState extends State<GameMenuDrawer> {
               });
               AudioService().toggleEffects();
             },
-            activeColor: Colors.amber,
+            activeThumbColor: Colors.amber,
           ),
         ],
       ),

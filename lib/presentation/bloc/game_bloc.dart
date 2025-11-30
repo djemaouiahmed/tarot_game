@@ -54,6 +54,7 @@ class GameBloc extends Bloc<GameEvent, GameBlocState> {
       final gameState = await startGame(
         event.numberOfPlayers,
         initialCards: event.initialCards,
+        startingLives: event.startingLives,
       );
       // Démarrer avec la phase de revue des cartes distribuées
       final reviewState = GameState(

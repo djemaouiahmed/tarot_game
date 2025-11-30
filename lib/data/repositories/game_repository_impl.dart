@@ -12,17 +12,21 @@ class GameRepositoryImpl implements GameRepository {
   GameRepositoryImpl(this.localDataSource);
 
   @override
-  Future initializeGame(int numberOfPlayers, {int initialCards = 5}) async {
+  Future initializeGame(
+    int numberOfPlayers, {
+    int initialCards = 5,
+    int startingLives = 14,
+  }) async {
     // Valider le nombre de joueurs
     if (numberOfPlayers < 3 || numberOfPlayers > 4) {
       throw ArgumentError('Le nombre de joueurs doit être 3 ou 4');
     }
 
     // Créer les joueurs
-    final players = _createPlayers(numberOfPlayers);
+    final players = _createPlayers(numberOfPlayers, startingLives);
 
     // Distribuer les paquets de cartes ordinaires face visible
-    _distributeOrdinaryCards(players);
+    _distributeOrdinaryCards(players, startingLives);
 
     // Créer l'état initial
     GameState state = GameState(
@@ -44,7 +48,7 @@ class GameRepositoryImpl implements GameRepository {
   }
 
   /// Crée la liste des joueurs
-  List<Player> _createPlayers(int numberOfPlayers) {
+  List<Player> _createPlayers(int numberOfPlayers, int startingLives) {
     final players = <Player>[];
 
     // Joueur humain
@@ -53,7 +57,7 @@ class GameRepositoryImpl implements GameRepository {
         id: 'player_0',
         name: 'Vous',
         type: PlayerType.human,
-        score: 14, // On commence avec 14 points (roi)
+        score: startingLives,
       ),
     );
 
@@ -64,7 +68,7 @@ class GameRepositoryImpl implements GameRepository {
           id: 'player_$i',
           name: 'Bot $i',
           type: PlayerType.bot,
-          score: 14,
+          score: startingLives,
         ),
       );
     }
@@ -73,7 +77,7 @@ class GameRepositoryImpl implements GameRepository {
   }
 
   /// Distribue les paquets de cartes ordinaires à chaque joueur
-  void _distributeOrdinaryCards(List<Player> players) {
+  void _distributeOrdinaryCards(List<Player> players, int startingLives) {
     // Tarot Africain: chaque joueur reçoit un paquet d'une couleur, trié par ordre décroissant
     final suits = [
       CardSuit.clubs,
@@ -87,7 +91,7 @@ class GameRepositoryImpl implements GameRepository {
       final ordinaryCards = <Card>[];
 
       // Ordre décroissant traditionnel: Roi (14) jusqu'à As (1) en dernier
-      final ranks = [
+      final allRanks = [
         CardRank.king, // 14
         CardRank.queen, // 13
         CardRank.knight, // 12
@@ -104,9 +108,14 @@ class GameRepositoryImpl implements GameRepository {
         CardRank.ace, // 1 (en dernier selon les règles)
       ];
 
+      // Prendre seulement le nombre de cartes correspondant aux vies de départ
+      // Si startingLives = 5, on prend les 5 premières (Roi, Dame, Cavalier, Valet, 10)
+      // Si startingLives = 14, on prend toutes les cartes
+      final ranksToUse = allRanks.take(startingLives).toList();
+
       // Valeurs selon l'ordre traditionnel du Tarot Africain
-      int value = 14;
-      for (final rank in ranks) {
+      int value = startingLives;
+      for (final rank in ranksToUse) {
         ordinaryCards.add(Card(suit: suit, rank: rank, value: value));
         value--;
       }

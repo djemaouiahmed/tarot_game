@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
-import '../../domain/entities/bot_difficulty.dart';
 import '../../core/theme/theme_provider.dart';
-import '../../core/audio/audio_service.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../bloc/game_bloc.dart';
-import '../bloc/game_event.dart';
-import 'game_page.dart';
 import 'game_setup_config_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -25,9 +21,6 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
-
-    // Start background music (désactivé car fichier MP3 manquant)
-    AudioService().playBackgroundMusic();
 
     _glowController = AnimationController(
       duration: const Duration(milliseconds: 3500),
@@ -519,7 +512,7 @@ class _HomePageState extends State<HomePage>
               ),
               _buildRuleSection(
                 '💰 Paris',
-                'Pariez le nombre de plis que vous pensez gagner. Le dernier joueur ne peut pas faire un total égal au nombre de cartes.',
+                'Pariez le nombre de plis que vous pensez gagner. Le dernier joueur ne peut pas faire un total égal au nombre de cartes.\n\nExemple avec 5 cartes : Si J1 parie 2, J2 parie 1, J3 parie 1, alors J4 ne peut PAS parier 1 (total = 5). J4 doit parier 0, 2 ou plus.',
               ),
               _buildRuleSection(
                 '🎴 L\'Excuse',

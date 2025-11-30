@@ -61,10 +61,6 @@ class _GameSetupConfigPageState extends State<GameSetupConfigPage> {
                       _buildLivesSection(),
                       const SizedBox(height: 24),
 
-                      // Nombre de cartes initiales
-                      _buildInitialCardsSection(),
-                      const SizedBox(height: 24),
-
                       // Mode équipes (seulement pour 4 joueurs)
                       if (widget.numberOfPlayers == 4) ...[
                         _buildTeamsSection(),
@@ -194,54 +190,6 @@ class _GameSetupConfigPageState extends State<GameSetupConfigPage> {
     );
   }
 
-  Widget _buildInitialCardsSection() {
-    return _buildConfigCard(
-      title: '🃏 Cartes par Tour',
-      subtitle: 'Nombre de cartes au premier tour',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.start,
-            children: GameConfig.initialCardsOptions.map((cards) {
-              final isSelected = _config.initialCards == cards;
-              return ChoiceChip(
-                label: Text(
-                  GameConfig.getInitialCardsLabel(cards),
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.white70,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                  ),
-                ),
-                selected: isSelected,
-                onSelected: (selected) {
-                  if (selected) {
-                    setState(() {
-                      _config = _config.copyWith(initialCards: cards);
-                    });
-                  }
-                },
-                selectedColor: Colors.amber.shade700,
-                backgroundColor: Colors.deepPurple.shade700.withOpacity(0.5),
-                side: BorderSide(
-                  color: isSelected
-                      ? Colors.amber.shade400
-                      : Colors.white.withOpacity(0.2),
-                  width: 2,
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildTeamsSection() {
     return _buildConfigCard(
       title: '👥 Mode Équipes',
@@ -279,7 +227,7 @@ class _GameSetupConfigPageState extends State<GameSetupConfigPage> {
                     style: TextStyle(color: Colors.white70, fontSize: 12),
                   )
                 : null,
-            activeColor: Colors.amber,
+            activeThumbColor: Colors.amber,
             contentPadding: EdgeInsets.zero,
           ),
         ],
@@ -372,7 +320,7 @@ class _GameSetupConfigPageState extends State<GameSetupConfigPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        activeColor: Colors.amber,
+        activeThumbColor: Colors.amber,
         contentPadding: EdgeInsets.zero,
       ),
     );
@@ -396,7 +344,7 @@ class _GameSetupConfigPageState extends State<GameSetupConfigPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        activeColor: Colors.amber,
+        activeThumbColor: Colors.amber,
         contentPadding: EdgeInsets.zero,
       ),
     );
@@ -518,6 +466,7 @@ class _GameSetupConfigPageState extends State<GameSetupConfigPage> {
         widget.numberOfPlayers,
         difficulty: _difficulty,
         initialCards: _config.initialCards,
+        startingLives: _config.startingLives,
       ),
     );
 

@@ -196,6 +196,11 @@ class ScoreBoard extends StatelessWidget {
     final playerBid = hasBid ? gameState.bids[index] : null;
     final isHuman = player.type == PlayerType.human;
 
+    // Calculate max lives from highest score (assumes all players start with same lives)
+    final maxLives = gameState.players
+        .map((p) => p.score)
+        .reduce((a, b) => a > b ? a : b);
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 3),
       padding: const EdgeInsets.all(8),
@@ -297,7 +302,12 @@ class ScoreBoard extends StatelessWidget {
           const SizedBox(height: 6),
 
           // Lives
-          PlayerLivesWidget(player: player, isCompact: true, showLabel: false),
+          PlayerLivesWidget(
+            player: player,
+            maxLives: maxLives,
+            isCompact: true,
+            showLabel: false,
+          ),
 
           // Bid and tricks info
           if (playerBid != null) ...[

@@ -4,12 +4,14 @@ import '../../domain/entities/player.dart';
 /// Widget to display player lives (ordinary cards) as progress bar
 class PlayerLivesWidget extends StatelessWidget {
   final Player player;
+  final int maxLives; // Maximum lives based on game config
   final bool isCompact;
   final bool showLabel;
 
   const PlayerLivesWidget({
     super.key,
     required this.player,
+    required this.maxLives,
     this.isCompact = false,
     this.showLabel = true,
   });
@@ -17,7 +19,6 @@ class PlayerLivesWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final livesCount = player.ordinaryCards.length;
-    final maxLives = 14; // Maximum de cartes ordinaires
     final percentage = livesCount / maxLives;
 
     // Déterminer la couleur selon le pourcentage de vies

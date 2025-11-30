@@ -7,11 +7,13 @@ class StartGameEvent extends GameEvent {
   final int numberOfPlayers;
   final BotDifficulty difficulty;
   final int initialCards;
+  final int startingLives;
 
   StartGameEvent(
     this.numberOfPlayers, {
     this.difficulty = BotDifficulty.medium,
     this.initialCards = 5,
+    this.startingLives = 14,
   });
 }
 

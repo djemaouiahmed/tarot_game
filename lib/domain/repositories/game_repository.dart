@@ -3,7 +3,11 @@ import '../entities/game_state.dart';
 
 abstract class GameRepository {
   /// Initialise une nouvelle partie avec le nombre de joueurs spécifié
-  Future initializeGame(int numberOfPlayers, {int initialCards});
+  Future initializeGame(
+    int numberOfPlayers, {
+    int initialCards,
+    int startingLives,
+  });
 
   /// Distribue les cartes pour un nouveau tour
   Future dealCards(GameState state);
